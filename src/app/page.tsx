@@ -1,95 +1,125 @@
+'use client'
 import Image from "next/image";
 import styles from "./page.module.css";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/GlobalContext/Store";
+import { useEffect, useState } from "react";
+import { logout } from "@/GlobalContext/Features/Users/userSlice";
+import { useRouter } from "next/navigation";
+import { getproducts, searchProducts } from "@/GlobalContext/Features/Products/productSlice";
+import Navbar from "./components/navbar/Navbar";
+import 'boxicons/css/boxicons.min.css';
+
+interface Product {
+  id: number;
+  title: string;
+  description: string;
+  price: number;
+  thumbnail: string;
+  rating: number
+}
+
 
 export default function Home() {
+
+  const state = useSelector((state: RootState) => state.userReducer.user);
+  const [email, setEmail] = useState("")
+  const dispatch: AppDispatch = useDispatch()
+  const router = useRouter();
+  const products = useSelector((state: RootState) => state.productReducer.products as Product[]);
+  const isLoading = useSelector((state: RootState) => state.productReducer.loading)
+
+  useEffect(() => {
+    dispatch(getproducts())
+  }, [])
+
+  const handleDetails = (productId: number)=>{
+    router.push(`/Product/${productId}`)
+  }
+
+  const handleSearch = (inputValue: string)=>{
+    console.log(inputValue)
+    dispatch(searchProducts(inputValue))
+  }
+
   return (
     <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+      <Navbar></Navbar>
+      <div className={styles.search}>
+        <input onChange={(e)=> handleSearch(e.target.value)} type="text" name="SearchProducts" className={styles.searchInput} placeholder="¿Que producto deseas buscar?"/>
+        <button className={styles.searchButton}><i className='bx bxs-search'></i> Buscar</button>
+      </div>
+      <p className={styles.founded}>{products.length} productos encontrado</p>
+      {isLoading ? (
+        <div className={styles.charging}>
+          <h2>Cargando productos...</h2>
+          <span className={styles.loader}></span>
         </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+      ) : (
+        <div className={styles.productsContainer}>
+          {products.map(product => {
+            return (
+              <div className={styles.productCard}>
+                <div className={styles.imgContainer}><img src={product.thumbnail} alt={product.title} /></div>
+                <p className={styles.productTitle}>{product.title}</p>
+                <p>${product.price}</p>
+                <div className={styles.starContainer}>
+                  {product.rating >= 4.5 ? (
+                    <>
+                      <i className='bx bxs-star'></i>
+                      <i className='bx bxs-star'></i>
+                      <i className='bx bxs-star'></i>
+                      <i className='bx bxs-star'></i>
+                      <i className='bx bxs-star'></i>
+                    </>
+                  ) : product.rating >= 3.5 ? (
+                    <>
+                      <i className='bx bxs-star'></i>
+                      <i className='bx bxs-star'></i>
+                      <i className='bx bxs-star'></i>
+                      <i className='bx bxs-star'></i>
+                      <i className='bx bx-star'></i>
+                    </>
+                  ) : product.rating >= 2.5 ? (
+                    <>
+                      <i className='bx bxs-star'></i>
+                      <i className='bx bxs-star'></i>
+                      <i className='bx bxs-star'></i>
+                      <i className='bx bx-star'></i>
+                      <i className='bx bx-star'></i>
+                    </>
+                  ) : product.rating >= 1.5 ? (
+                    <>
+                      <i className='bx bxs-star'></i>
+                      <i className='bx bxs-star'></i>
+                      <i className='bx bx-star'></i>
+                      <i className='bx bx-star'></i>
+                      <i className='bx bx-star'></i>
+                    </>
+                  ) : product.rating >= 0.5 ? (
+                    <>
+                      <i className='bx bxs-star'></i>
+                      <i className='bx bx-star'></i>
+                      <i className='bx bx-star'></i>
+                      <i className='bx bx-star'></i>
+                      <i className='bx bx-star'></i>
+                    </>
+                  ) : (
+                    <>
+                      <i className='bx bx-star'></i>
+                      <i className='bx bx-star'></i>
+                      <i className='bx bx-star'></i>
+                      <i className='bx bx-star'></i>
+                      <i className='bx bx-star'></i>
+                    </>
+                  )}
+                </div>
+                <button onClick={()=> handleDetails(product.id)} className={styles.seeMoreInfo}>Ver mas</button>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </main>
   );
 }
